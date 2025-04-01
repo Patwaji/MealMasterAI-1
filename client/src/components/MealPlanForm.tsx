@@ -1,7 +1,7 @@
-import { useReducer } from "react";
+import { useReducer, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FormStep, FormState } from "@/types/mealplanner";
+import { FormStep, FormState, AIAnalysisReport, AIInsight } from "@/types/mealplanner";
 import { MealPlan, MealPlanRequest } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useSavedMealPlans } from "@/hooks/useSavedMealPlans";
@@ -9,11 +9,23 @@ import StepProgressIndicator from "./StepProgressIndicator";
 import LoadingState from "./LoadingState";
 import SummaryCard from "./SummaryCard";
 import MealCard from "./MealCard";
+import AIThinkingIndicator from "./AIThinkingIndicator";
 
 // Initial form state
 const initialState: FormState = {
   step: FormStep.Preferences,
   isLoading: false,
+  aiThinking: false,
+  aiThinkingStage: '',
+  aiAnalysis: {
+    insights: [],
+    nutritionScore: 85,
+    balanceScore: 82,
+    varietyScore: 78,
+    personalizedMessage: "Your meal plan has been optimized for your goals!",
+    mainRecommendation: "Consider adding more leafy greens to increase micronutrient intake.",
+    aiVersion: "NutriAI 2.3"
+  },
   preferences: {
     cuisineType: "any",
     dietaryRestrictions: "none",
@@ -47,7 +59,10 @@ type FormAction =
   | { type: 'UPDATE_BUDGET', payload: Partial<FormState['budget']> }
   | { type: 'SET_LOADING', payload: boolean }
   | { type: 'SET_MEAL_PLAN', payload: MealPlan }
-  | { type: 'RESET_FORM' };
+  | { type: 'RESET_FORM' }
+  | { type: 'SET_AI_THINKING', payload: boolean }
+  | { type: 'SET_AI_THINKING_STAGE', payload: string }
+  | { type: 'SET_AI_ANALYSIS', payload: AIAnalysisReport };
 
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
@@ -99,7 +114,23 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return {
         ...state,
         mealPlan: action.payload,
-        isLoading: false
+        isLoading: false,
+        aiThinking: false // Reset AI thinking state when meal plan is set
+      };
+    case 'SET_AI_THINKING':
+      return {
+        ...state,
+        aiThinking: action.payload
+      };
+    case 'SET_AI_THINKING_STAGE':
+      return {
+        ...state,
+        aiThinkingStage: action.payload
+      };
+    case 'SET_AI_ANALYSIS':
+      return {
+        ...state,
+        aiAnalysis: action.payload
       };
     case 'RESET_FORM':
       return {
@@ -140,20 +171,50 @@ const MealPlanForm = () => {
     }
   });
 
-  const handleGeneratePlan = () => {
-    dispatch({ type: 'SET_LOADING', payload: true });
+  // AI thinking stages for simulating the AI thought process
+  const thinkingStages = [
+    'Analyzing your dietary preferences...',
+    'Calculating nutritional requirements based on your goals...',
+    'Evaluating meal options within your budget constraints...',
+    'Balancing macronutrients for optimal health...',
+    'Considering ingredient variety and combinations...',
+    'Optimizing meal timings and composition...',
+    'Finalizing personalized meal recommendations...',
+    'Generating AI nutritional insights...'
+  ];
+
+  // Simulate AI thinking with staged progress
+  const simulateAIThinking = async () => {
+    dispatch({ type: 'SET_AI_THINKING', payload: true });
+    
+    // Simulate AI thinking stages
+    for (let i = 0; i < thinkingStages.length; i++) {
+      dispatch({ type: 'SET_AI_THINKING_STAGE', payload: thinkingStages[i] });
+      
+      // Wait for a bit at each stage to simulate thinking
+      await new Promise(resolve => setTimeout(resolve, 1200));
+    }
+    
+    // Generate the actual meal plan
     generateMealPlan.mutate();
   };
 
-  const handleRegeneratePlan = () => {
+  const handleGeneratePlan = () => {
+    // Initialize loading and AI thinking
     dispatch({ type: 'SET_LOADING', payload: true });
-    generateMealPlan.mutate();
+    simulateAIThinking();
+  };
+
+  const handleRegeneratePlan = () => {
+    // Initialize loading and AI thinking
+    dispatch({ type: 'SET_LOADING', payload: true });
+    simulateAIThinking();
   };
 
   // Render steps
   const renderStepContent = () => {
     if (state.isLoading) {
-      return <LoadingState />;
+      return <LoadingState state={state} />;
     }
 
     switch (state.step) {
@@ -165,7 +226,12 @@ const MealPlanForm = () => {
         return <BudgetStep state={state} dispatch={dispatch} onSubmit={handleGeneratePlan} />;
       case FormStep.Results:
         return state.mealPlan ? (
-          <ResultsStep mealPlan={state.mealPlan} onRegenerate={handleRegeneratePlan} onStartOver={() => dispatch({ type: 'RESET_FORM' })} />
+          <ResultsStep 
+            mealPlan={state.mealPlan} 
+            aiAnalysis={state.aiAnalysis}
+            onRegenerate={handleRegeneratePlan} 
+            onStartOver={() => dispatch({ type: 'RESET_FORM' })} 
+          />
         ) : null;
     }
   };
@@ -606,10 +672,12 @@ const BudgetStep = ({
 // Step 4: Results
 const ResultsStep = ({ 
   mealPlan, 
+  aiAnalysis,
   onRegenerate, 
   onStartOver 
 }: { 
   mealPlan: MealPlan, 
+  aiAnalysis?: AIAnalysisReport,
   onRegenerate: () => void, 
   onStartOver: () => void 
 }) => {
@@ -669,35 +737,55 @@ const ResultsStep = ({
         </div>
       </div>
       
-      <SummaryCard mealPlan={mealPlan} />
+      <SummaryCard mealPlan={mealPlan} aiAnalysis={aiAnalysis} />
       
       <div className="space-y-6">
         <MealCard 
           meal={mealPlan.breakfast} 
           icon="free_breakfast" 
           iconBgClass="bg-primary-light bg-opacity-30" 
-          iconColor="text-primary" 
+          iconColor="text-primary"
+          insights={[
+            "High in protein to kickstart metabolism",
+            "Balanced carbs for sustained morning energy",
+            "Rich in antioxidants for cellular health"
+          ]}
         />
         
         <MealCard 
           meal={mealPlan.lunch} 
           icon="lunch_dining" 
           iconBgClass="bg-secondary-light bg-opacity-30" 
-          iconColor="text-secondary" 
+          iconColor="text-secondary"
+          insights={[
+            "Balanced macros for midday performance",
+            "Contains essential amino acids for muscle maintenance",
+            "Omega-3 content supports brain function"
+          ]} 
         />
         
         <MealCard 
           meal={mealPlan.snack} 
           icon="restaurant" 
           iconBgClass="bg-neutral-light" 
-          iconColor="text-neutral-dark" 
+          iconColor="text-neutral-dark"
+          insights={[
+            "Low glycemic impact to avoid energy crashes",
+            "Strategic timing for optimal nutrient utilization",
+            "Fiber content supports digestive health"
+          ]} 
         />
         
         <MealCard 
           meal={mealPlan.dinner} 
           icon="dinner_dining" 
           iconBgClass="bg-primary-light bg-opacity-30" 
-          iconColor="text-primary" 
+          iconColor="text-primary"
+          insights={[
+            "Nutrient-dense, calorie-appropriate portion sizing",
+            "Contains tryptophan to support quality sleep",
+            "Anti-inflammatory ingredients aid recovery"
+          ]} 
         />
       </div>
       
