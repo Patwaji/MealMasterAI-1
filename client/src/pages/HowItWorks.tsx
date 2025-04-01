@@ -3,6 +3,17 @@ import { Link } from "wouter";
 const HowItWorks = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Large Logo at the top */}
+      <div className="text-center mb-10">
+        <div className="inline-block mb-6">
+          <div className="flex items-center justify-center">
+            <span className="material-icons text-primary text-5xl mr-2">eco</span>
+            <span className="text-5xl font-extrabold text-primary-dark">Nutri<span className="text-primary">Plan</span></span>
+          </div>
+          <div className="text-sm text-neutral-dark mt-1">AI-Powered Meal Planning</div>
+        </div>
+      </div>
+
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold font-heading text-gray-900 mb-4">How It Works</h1>
         <p className="text-neutral-dark max-w-3xl mx-auto text-lg">
