@@ -14,6 +14,6 @@
 
 @layer components {
   .list-icon {
-    @apply text-primary mr-2 text-lg mt-1;
+    @apply text-primary mr-2 text-base mt-0.5 flex-shrink-0;
   }
 }

@@ -39,15 +39,15 @@ const HowItWorks = () => {
             </p>
             <ul className="space-y-1 text-gray-600">
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Select from various cuisine types</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Specify dietary restrictions like vegetarian, vegan, or gluten-free</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>List ingredients you dislike or are allergic to</span>
               </li>
             </ul>
@@ -71,15 +71,15 @@ const HowItWorks = () => {
             </p>
             <ul className="space-y-1 text-gray-600">
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Choose your primary goal (weight loss, muscle gain, maintenance)</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Set your target daily calorie intake</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Indicate any specific health conditions that should be considered</span>
               </li>
             </ul>
@@ -103,15 +103,15 @@ const HowItWorks = () => {
             </p>
             <ul className="space-y-1 text-gray-600">
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Specify your maximum daily budget</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Adjust budget distribution across meals if desired</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Choose your budget priority (strict, balanced, or nutrition-first)</span>
               </li>
             </ul>
@@ -122,7 +122,7 @@ const HowItWorks = () => {
         <div className="flex flex-col md:flex-row items-center mb-16">
           <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center md:order-2">
             <div className="w-32 h-32 rounded-full bg-primary-light flex items-center justify-center shadow-lg">
-              <span className="material-icons text-primary text-6xl">magic_button</span>
+              <span className="material-icons text-primary text-6xl">auto_awesome</span>
             </div>
           </div>
           <div className="md:w-2/3 md:pr-8 md:order-1">
@@ -135,15 +135,15 @@ const HowItWorks = () => {
             </p>
             <ul className="space-y-1 text-gray-600">
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>Receive meal suggestions based on your criteria</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>View detailed nutritional information for each meal</span>
               </li>
               <li className="flex items-start">
-                <span className="material-icons list-icon">arrow_right</span>
+                <span className="material-icons list-icon">check_circle</span>
                 <span>See ingredient lists and estimated costs</span>
               </li>
             </ul>
