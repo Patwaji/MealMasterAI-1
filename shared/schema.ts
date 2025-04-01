@@ -1,21 +1,44 @@
-import { pgTable, text, serial, integer, boolean, json, real, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, json, real, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema (keeping the existing one)
+// User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").unique(),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Saved meal plans table
+export const savedMealPlans = pgTable("saved_meal_plans", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  plan_name: text("plan_name").notNull(),
+  date_created: timestamp("date_created").defaultNow(),
+  preferences: jsonb("preferences").notNull(),
+  goals: jsonb("goals").notNull(),
+  budget: jsonb("budget").notNull(),
+  plan_data: jsonb("plan_data").notNull()
+});
+
+export const insertMealPlanSchema = createInsertSchema(savedMealPlans).omit({
+  id: true,
+  date_created: true,
+});
+
+export type InsertMealPlan = z.infer<typeof insertMealPlanSchema>;
+export type SavedMealPlan = typeof savedMealPlans.$inferSelect;
 
 // Meal planner schemas
 export const mealPreferences = z.object({

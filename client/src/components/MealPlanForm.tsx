@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { FormStep, FormState } from "@/types/mealplanner";
 import { MealPlan, MealPlanRequest } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useSavedMealPlans } from "@/hooks/useSavedMealPlans";
 import StepProgressIndicator from "./StepProgressIndicator";
 import LoadingState from "./LoadingState";
 import SummaryCard from "./SummaryCard";
@@ -612,6 +613,40 @@ const ResultsStep = ({
   onRegenerate: () => void, 
   onStartOver: () => void 
 }) => {
+  const { saveMealPlan } = useSavedMealPlans();
+  const { toast } = useToast();
+  
+  const handleSaveMealPlan = () => {
+    const planRequest: MealPlanRequest = {
+      preferences: {
+        cuisineType: "any",
+        dietaryRestrictions: "none",
+        dislikedIngredients: ""
+      },
+      goals: {
+        primaryGoal: "maintenance",
+        calorieTarget: 2000,
+        healthConditions: "none"
+      },
+      budget: {
+        dailyBudget: 25,
+        budgetPriority: "balanced",
+        mealBudget: {
+          breakfast: 6,
+          lunch: 8,
+          snack: 3,
+          dinner: 8
+        }
+      }
+    };
+    
+    saveMealPlan.mutate({
+      planName: `Meal Plan - ${new Date().toLocaleDateString()}`,
+      planRequest: planRequest,
+      planData: mealPlan
+    });
+  };
+  
   return (
     <div id="step4" className="step-container">
       <div className="flex justify-between items-center mb-6">
@@ -666,7 +701,16 @@ const ResultsStep = ({
         />
       </div>
       
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex justify-center space-x-4">
+        <button 
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors duration-200 flex items-center"
+          onClick={handleSaveMealPlan}
+          disabled={saveMealPlan.isPending}
+        >
+          <span className="material-icons mr-2">save</span>
+          {saveMealPlan.isPending ? 'Saving...' : 'Save Meal Plan'}
+        </button>
+        
         <button 
           className="bg-secondary hover:bg-secondary-dark text-white px-6 py-3 rounded-md font-medium transition-colors duration-200 flex items-center"
           onClick={() => {
