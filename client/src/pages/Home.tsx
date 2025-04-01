@@ -70,7 +70,7 @@ const Home = () => {
             Stop stressing about what to eat and start enjoying personalized meal plans that fit your lifestyle.
           </p>
           <Link href="/meal-planner">
-            <a className="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-md font-medium text-lg transition-colors duration-200 inline-block">
+            <a className="bg-white hover:bg-gray-100 text-primary border-2 border-primary px-8 py-3 rounded-md font-medium text-lg transition-colors duration-200 inline-block shadow-md">
               Get Started For Free
             </a>
           </Link>
