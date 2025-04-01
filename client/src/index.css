@@ -11,3 +11,9 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  .list-icon {
+    @apply text-primary mr-2 text-lg mt-1;
+  }
+}
