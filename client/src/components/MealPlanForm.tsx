@@ -491,7 +491,7 @@ const BudgetStep = ({
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="breakfast-budget">Breakfast</label>
             <div className="flex items-center">
-              <span className="mr-1">₹</span>
+              <span className="mr-1">$</span>
               <input 
                 type="number" 
                 id="breakfast-budget" 
@@ -514,7 +514,7 @@ const BudgetStep = ({
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="lunch-budget">Lunch</label>
             <div className="flex items-center">
-              <span className="mr-1">₹</span>
+              <span className="mr-1">$</span>
               <input 
                 type="number" 
                 id="lunch-budget" 
@@ -537,7 +537,7 @@ const BudgetStep = ({
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="snack-budget">Snack</label>
             <div className="flex items-center">
-              <span className="mr-1">₹</span>
+              <span className="mr-1">$</span>
               <input 
                 type="number" 
                 id="snack-budget" 
@@ -560,7 +560,7 @@ const BudgetStep = ({
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="dinner-budget">Dinner</label>
             <div className="flex items-center">
-              <span className="mr-1">₹</span>
+              <span className="mr-1">$</span>
               <input 
                 type="number" 
                 id="dinner-budget" 

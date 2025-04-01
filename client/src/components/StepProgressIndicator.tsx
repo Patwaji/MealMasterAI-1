@@ -34,11 +34,12 @@ const StepProgressIndicator = ({ currentStep }: StepProgressIndicatorProps) => {
           </div>,
           
           index < steps.length - 1 && (
-            <div key={`line-${index}`} className="flex-1 h-1 bg-neutral-medium mx-2">
+            <div key={`line-${index}`} className="flex-1 h-1 bg-neutral-medium mx-2 flex items-center">
               <div 
                 className={`h-full bg-primary transition-all duration-500 ${
                   index < currentStep ? "w-full" : "w-0"
                 }`}
+                style={{ alignSelf: 'center' }}
               />
             </div>
           )

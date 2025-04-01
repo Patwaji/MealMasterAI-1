@@ -42,10 +42,10 @@ const SummaryCard = ({ mealPlan }: SummaryCardProps) => {
       <div className="mt-4 pt-4 border-t border-neutral-medium">
         <div className="flex justify-between items-center">
           <p className="text-sm text-neutral-dark">
-            Daily Budget: <span className="font-medium text-gray-800">₹{mealPlan.totalCost.toFixed(2)}</span>
+            Daily Budget: <span className="font-medium text-gray-800">${mealPlan.totalCost.toFixed(2)}</span>
           </p>
           <p className="text-sm">
-            Total Cost: <span className="font-semibold text-gray-800">₹{mealPlan.totalCost.toFixed(2)}</span>
+            Total Cost: <span className="font-semibold text-gray-800">${mealPlan.totalCost.toFixed(2)}</span>
           </p>
         </div>
       </div>
