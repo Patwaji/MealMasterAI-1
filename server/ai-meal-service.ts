@@ -145,8 +145,6 @@ async function aiEnhancedNutritionalAnalysis(mealName: string): Promise<Nutritio
  * Applies AI-based adjustments to nutrition information based on 
  * meal components, preparation methods, and serving size
  */
-function enhanceNutritionWithAI(baseNutrition: NutritionInfo, mealName: string): NutritionInfo {
-  // Starting with the base nutrition values
 
 function aiCalculateMealScore(
   meal: { name: string; cost: number },
@@ -188,6 +186,8 @@ function calculateHealthGoalMatch(mealName: string, healthGoal: string): number 
   return score;
 }
 
+function enhanceNutritionWithAI(baseNutrition: NutritionInfo, mealName: string): NutritionInfo {
+  // Starting with the base nutrition values
   const enhanced = { ...baseNutrition };
   
   // Analyze cooking methods for more accurate fat content
