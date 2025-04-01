@@ -315,7 +315,7 @@ export async function generateMealPlan(request: MealPlanRequest): Promise<MealPl
         breakfastMeal = {
           name: recipe.title,
           type: "breakfast",
-          cost: parseFloat((priceInfo.totalCost / 100).toFixed(2)), // Convert cents to dollars
+          cost: parseFloat((priceInfo.totalCost / 100).toFixed(2)), // Convert cents to rupees
           nutrition: {
             calories: recipe.nutrition.nutrients.find((n: any) => n.name === "Calories").amount,
             protein: recipe.nutrition.nutrients.find((n: any) => n.name === "Protein").amount,

@@ -25,7 +25,7 @@ const MealCard = ({ meal, icon, iconBgClass, iconColor }: MealCardProps) => {
         </div>
         <div className="flex items-center">
           <div className="text-right mr-4">
-            <p className="font-medium">${meal.cost.toFixed(2)}</p>
+            <p className="font-medium">₹{meal.cost.toFixed(2)}</p>
             <p className="text-sm text-neutral-dark">{meal.nutrition.calories} kcal</p>
           </div>
           <span 
