@@ -147,6 +147,47 @@ async function aiEnhancedNutritionalAnalysis(mealName: string): Promise<Nutritio
  */
 function enhanceNutritionWithAI(baseNutrition: NutritionInfo, mealName: string): NutritionInfo {
   // Starting with the base nutrition values
+
+function aiCalculateMealScore(
+  meal: { name: string; cost: number },
+  targetCalories: number,
+  budget: number,
+  healthGoal: string,
+  cuisinePreference: string
+): number {
+  const estimatedCalories = estimateCalories(meal.name);
+  const calorieMatch = 1 - Math.min(Math.abs(estimatedCalories - targetCalories) / targetCalories, 1);
+  const budgetMatch = meal.cost <= budget ? 1 - (meal.cost / budget) * 0.5 : 0;
+  const healthGoalMatch = calculateHealthGoalMatch(meal.name, healthGoal);
+  const cuisineMatch = cuisinePreference === 'any' ? 1.0 : 
+    meal.name.toLowerCase().includes(cuisinePreference.toLowerCase()) ? 1.0 : 0.3;
+
+  return (
+    decisionFactors.nutritionalBalance * calorieMatch +
+    decisionFactors.budgetOptimization * budgetMatch +
+    decisionFactors.healthGoalAlignment * healthGoalMatch +
+    decisionFactors.preferenceMatching * cuisineMatch
+  );
+}
+
+function calculateHealthGoalMatch(mealName: string, healthGoal: string): number {
+  let score = 0.5;
+  
+  switch(healthGoal) {
+    case 'weight-loss':
+      score = mealName.match(/salad|grilled|lean|steamed/) ? 0.9 : 0.6;
+      break;
+    case 'muscle-gain':
+      score = mealName.match(/protein|chicken|beef|fish|egg/) ? 0.9 : 0.6;
+      break;
+    case 'maintenance':
+      score = 0.8;
+      break;
+  }
+  
+  return score;
+}
+
   const enhanced = { ...baseNutrition };
   
   // Analyze cooking methods for more accurate fat content
@@ -261,14 +302,31 @@ async function generateSingleMeal(
   // Apply advanced AI analysis to select the optimal meal
   console.log(`${AI_SYSTEM_NAME} v${AI_SYSTEM_VERSION}: Analyzing meal options for ${mealType}...`);
   
-  // Use AI scoring and ranking algorithm to select the best meal
-  const selectedMeal = aiSelectOptimalMeal(
-    mealOptions, 
-    targetCalories, 
-    budget, 
-    goals.primaryGoal,
-    preferences.cuisineType
-  );
+  // Get suitable meal options based on AI scoring
+  const suitableMeals = mealOptions
+    .map(meal => ({
+      meal,
+      score: aiCalculateMealScore(
+        meal,
+        targetCalories,
+        budget,
+        goals.primaryGoal,
+        preferences.cuisineType
+      )
+    }))
+    .filter(({ score }) => score > 0.6) // Only keep meals with good scores
+    .sort(() => Math.random() - 0.5); // Randomize order
+
+  // Select a random meal from suitable options, or fallback to best match
+  const selectedMeal = suitableMeals.length > 0 
+    ? suitableMeals[0].meal
+    : aiSelectOptimalMeal(
+        mealOptions, 
+        targetCalories, 
+        budget, 
+        goals.primaryGoal,
+        preferences.cuisineType
+      );
   
   // Get nutrition information for the selected meal with enhanced AI analysis
   console.log(`${AI_SYSTEM_NAME}: Performing nutritional analysis for "${selectedMeal.name}"...`);
