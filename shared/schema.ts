@@ -93,7 +93,8 @@ export const meal = z.object({
   type: z.enum(["breakfast", "lunch", "snack", "dinner"]),
   cost: z.number(),
   nutrition: nutritionInfo,
-  ingredients: z.array(z.string())
+  ingredients: z.array(z.string()),
+  instructions: z.array(z.string()).optional()
 });
 
 export type Meal = z.infer<typeof meal>;

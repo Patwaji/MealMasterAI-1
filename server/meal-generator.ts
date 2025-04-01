@@ -12,6 +12,7 @@ import {
   getRecipeInformation, 
   getRecipePriceBreakdown 
 } from './nutrition-api';
+import { generateAIMealPlan } from './ai-meal-service';
 
 // Default meals for fallback if API requests fail
 const defaultMeals: Record<string, Meal[]> = {
@@ -245,132 +246,21 @@ function calculateTotalNutrition(mealPlan: {
  * @returns A complete meal plan with nutrition information
  */
 export async function generateMealPlan(request: MealPlanRequest): Promise<MealPlan> {
-  const { preferences, goals, budget } = request;
-  
   try {
-    // Transform dietary restrictions to Spoonacular format
-    const dietMap: Record<string, string> = {
-      'vegetarian': 'vegetarian',
-      'vegan': 'vegan',
-      'gluten-free': 'gluten free',
-      'dairy-free': 'dairy free',
-      'keto': 'ketogenic',
-      'paleo': 'paleo'
-    };
+    console.log('Generating AI-powered meal plan...');
     
-    const diet = preferences.dietaryRestrictions !== 'none' 
-      ? dietMap[preferences.dietaryRestrictions] 
-      : undefined;
-    
-    // Adjust calorie target based on health goal if not specified
-    let targetCalories = goals.calorieTarget;
-    if (!targetCalories) {
-      switch (goals.primaryGoal) {
-        case 'weight-loss':
-          targetCalories = 1800; // Example default for weight loss
-          break;
-        case 'muscle-gain':
-          targetCalories = 2600; // Example default for muscle gain
-          break;
-        case 'maintenance':
-        default:
-          targetCalories = 2100; // Example default for maintenance
-      }
-    }
-    
-    // Calculate per-meal calorie targets (approximate distribution)
-    const breakfastCalories = Math.round(targetCalories * 0.25); // 25% of daily calories
-    const lunchCalories = Math.round(targetCalories * 0.3); // 30% of daily calories
-    const snackCalories = Math.round(targetCalories * 0.15); // 15% of daily calories
-    const dinnerCalories = Math.round(targetCalories * 0.3); // 30% of daily calories
-    
-    // Try to fetch meals from the API
-    let breakfastMeal: Meal;
-    let lunchMeal: Meal;
-    let snackMeal: Meal;
-    let dinnerMeal: Meal;
-    
+    // First try to use our AI-powered meal generation service
     try {
-      // Search for breakfast recipes
-      const breakfastQuery = "breakfast " + (preferences.cuisineType !== 'any' ? preferences.cuisineType : '');
-      const breakfastResults = await searchRecipes(
-        breakfastQuery, 
-        preferences.cuisineType !== 'any' ? preferences.cuisineType : undefined,
-        diet,
-        preferences.dislikedIngredients,
-        breakfastCalories + 100 // Allow some flexibility
-      );
-      
-      if (breakfastResults && breakfastResults.length > 0) {
-        const recipe = breakfastResults[0];
-        const recipeInfo = await getRecipeInformation(recipe.id);
-        const priceInfo = await getRecipePriceBreakdown(recipe.id);
-        
-        // Extract ingredient list
-        const ingredients = recipeInfo.extendedIngredients.map((ing: any) => 
-          `${ing.amount} ${ing.unit} ${ing.name}`
-        );
-        
-        // Format as a Meal object
-        breakfastMeal = {
-          name: recipe.title,
-          type: "breakfast",
-          cost: parseFloat((priceInfo.totalCost / 100).toFixed(2)), // Convert cents to rupees
-          nutrition: {
-            calories: recipe.nutrition.nutrients.find((n: any) => n.name === "Calories").amount,
-            protein: recipe.nutrition.nutrients.find((n: any) => n.name === "Protein").amount,
-            carbs: recipe.nutrition.nutrients.find((n: any) => n.name === "Carbohydrates").amount,
-            fat: recipe.nutrition.nutrients.find((n: any) => n.name === "Fat").amount,
-            fiber: recipe.nutrition.nutrients.find((n: any) => n.name === "Fiber")?.amount,
-            sugar: recipe.nutrition.nutrients.find((n: any) => n.name === "Sugar")?.amount
-          },
-          ingredients
-        };
-      } else {
-        // Fallback to default meal
-        breakfastMeal = defaultMeals.breakfast[0];
-      }
-      
-      // Similarly for lunch, snack, and dinner...
-      // For brevity, using default meals for the other meal types in this example
-      lunchMeal = defaultMeals.lunch[0];
-      snackMeal = defaultMeals.snack[0];
-      dinnerMeal = defaultMeals.dinner[0];
-      
-    } catch (error) {
-      console.error("Error fetching meal data from API:", error);
-      // Fallback to default meals if API requests fail
-      breakfastMeal = defaultMeals.breakfast[Math.floor(Math.random() * defaultMeals.breakfast.length)];
-      lunchMeal = defaultMeals.lunch[Math.floor(Math.random() * defaultMeals.lunch.length)];
-      snackMeal = defaultMeals.snack[Math.floor(Math.random() * defaultMeals.snack.length)];
-      dinnerMeal = defaultMeals.dinner[Math.floor(Math.random() * defaultMeals.dinner.length)];
+      return await generateAIMealPlan(request);
+    } catch (aiError) {
+      // If AI service fails, fall back to Spoonacular API
+      console.error('AI meal generation failed, falling back to Spoonacular:', aiError);
+      return await generateSpoonacularMealPlan(request);
     }
-    
-    // Create the meal plan
-    const mealPlanObj = {
-      breakfast: breakfastMeal,
-      lunch: lunchMeal,
-      snack: snackMeal,
-      dinner: dinnerMeal
-    };
-    
-    // Calculate total nutrition
-    const totalNutrition = calculateTotalNutrition(mealPlanObj);
-    
-    // Calculate total cost
-    const totalCost = breakfastMeal.cost + lunchMeal.cost + snackMeal.cost + dinnerMeal.cost;
-    
-    // Return complete meal plan
-    return {
-      ...mealPlanObj,
-      totalNutrition,
-      totalCost
-    };
-    
   } catch (error) {
-    console.error("Error generating meal plan:", error);
+    console.error('All meal generation methods failed:', error);
     
-    // Fallback to a default meal plan if something goes wrong
+    // Ultimate fallback - use default meals if everything else fails
     const fallbackPlan = {
       breakfast: defaultMeals.breakfast[0],
       lunch: defaultMeals.lunch[0],
@@ -388,4 +278,132 @@ export async function generateMealPlan(request: MealPlanRequest): Promise<MealPl
       totalCost
     };
   }
+}
+
+/**
+ * Generates a meal plan using the Spoonacular API
+ * @param request The meal plan request
+ * @returns A complete meal plan
+ */
+async function generateSpoonacularMealPlan(request: MealPlanRequest): Promise<MealPlan> {
+  const { preferences, goals, budget } = request;
+  
+  // Transform dietary restrictions to Spoonacular format
+  const dietMap: Record<string, string> = {
+    'vegetarian': 'vegetarian',
+    'vegan': 'vegan',
+    'gluten-free': 'gluten free',
+    'dairy-free': 'dairy free',
+    'keto': 'ketogenic',
+    'paleo': 'paleo'
+  };
+  
+  const diet = preferences.dietaryRestrictions !== 'none' 
+    ? dietMap[preferences.dietaryRestrictions] 
+    : undefined;
+  
+  // Adjust calorie target based on health goal if not specified
+  let targetCalories = goals.calorieTarget;
+  if (!targetCalories) {
+    switch (goals.primaryGoal) {
+      case 'weight-loss':
+        targetCalories = 1800; // Example default for weight loss
+        break;
+      case 'muscle-gain':
+        targetCalories = 2600; // Example default for muscle gain
+        break;
+      case 'maintenance':
+      default:
+        targetCalories = 2100; // Example default for maintenance
+    }
+  }
+  
+  // Calculate per-meal calorie targets (approximate distribution)
+  const breakfastCalories = Math.round(targetCalories * 0.25); // 25% of daily calories
+  const lunchCalories = Math.round(targetCalories * 0.3); // 30% of daily calories
+  const snackCalories = Math.round(targetCalories * 0.15); // 15% of daily calories
+  const dinnerCalories = Math.round(targetCalories * 0.3); // 30% of daily calories
+  
+  // Try to fetch meals from the API
+  let breakfastMeal: Meal;
+  let lunchMeal: Meal;
+  let snackMeal: Meal;
+  let dinnerMeal: Meal;
+  
+  try {
+    // Search for breakfast recipes
+    const breakfastQuery = "breakfast " + (preferences.cuisineType !== 'any' ? preferences.cuisineType : '');
+    const breakfastResults = await searchRecipes(
+      breakfastQuery, 
+      preferences.cuisineType !== 'any' ? preferences.cuisineType : undefined,
+      diet,
+      preferences.dislikedIngredients,
+      breakfastCalories + 100 // Allow some flexibility
+    );
+    
+    if (breakfastResults && breakfastResults.length > 0) {
+      const recipe = breakfastResults[0];
+      const recipeInfo = await getRecipeInformation(recipe.id);
+      const priceInfo = await getRecipePriceBreakdown(recipe.id);
+      
+      // Extract ingredient list
+      const ingredients = recipeInfo.extendedIngredients.map((ing: any) => 
+        `${ing.amount} ${ing.unit} ${ing.name}`
+      );
+      
+      // Format as a Meal object
+      breakfastMeal = {
+        name: recipe.title,
+        type: "breakfast",
+        cost: parseFloat((priceInfo.totalCost / 100).toFixed(2)), 
+        nutrition: {
+          calories: recipe.nutrition.nutrients.find((n: any) => n.name === "Calories").amount,
+          protein: recipe.nutrition.nutrients.find((n: any) => n.name === "Protein").amount,
+          carbs: recipe.nutrition.nutrients.find((n: any) => n.name === "Carbohydrates").amount,
+          fat: recipe.nutrition.nutrients.find((n: any) => n.name === "Fat").amount,
+          fiber: recipe.nutrition.nutrients.find((n: any) => n.name === "Fiber")?.amount,
+          sugar: recipe.nutrition.nutrients.find((n: any) => n.name === "Sugar")?.amount
+        },
+        ingredients
+      };
+    } else {
+      // Fallback to default meal
+      breakfastMeal = defaultMeals.breakfast[0];
+    }
+    
+    // Similarly for lunch, snack, and dinner...
+    // For brevity, using default meals for the other meal types in this example
+    lunchMeal = defaultMeals.lunch[0];
+    snackMeal = defaultMeals.snack[0];
+    dinnerMeal = defaultMeals.dinner[0];
+    
+  } catch (error) {
+    console.error("Error fetching meal data from API:", error);
+    // Fallback to default meals if API requests fail
+    breakfastMeal = defaultMeals.breakfast[Math.floor(Math.random() * defaultMeals.breakfast.length)];
+    lunchMeal = defaultMeals.lunch[Math.floor(Math.random() * defaultMeals.lunch.length)];
+    snackMeal = defaultMeals.snack[Math.floor(Math.random() * defaultMeals.snack.length)];
+    dinnerMeal = defaultMeals.dinner[Math.floor(Math.random() * defaultMeals.dinner.length)];
+  }
+  
+  // Create the meal plan
+  const mealPlanObj = {
+    breakfast: breakfastMeal,
+    lunch: lunchMeal,
+    snack: snackMeal,
+    dinner: dinnerMeal
+  };
+  
+  // Calculate total nutrition
+  const totalNutrition = calculateTotalNutrition(mealPlanObj);
+  
+  // Calculate total cost
+  const totalCost = breakfastMeal.cost + lunchMeal.cost + snackMeal.cost + dinnerMeal.cost;
+  
+  // Return complete meal plan
+  return {
+    ...mealPlanObj,
+    totalNutrition,
+    totalCost
+  };
 }

@@ -14,10 +14,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API endpoint to generate a meal plan
   app.post('/api/meal-plan', async (req, res) => {
     try {
+      console.log('Received meal plan generation request');
+      
       // Validate request body
       const result = mealPlanRequest.safeParse(req.body);
       
       if (!result.success) {
+        console.error('Invalid meal plan request:', result.error.errors);
         return res.status(400).json({ 
           message: "Invalid request body", 
           errors: result.error.errors 
@@ -25,16 +28,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const mealPlanData: MealPlanRequest = result.data;
+      console.log('Starting AI-powered meal plan generation');
       
-      // Generate the meal plan using our algorithm
-      const mealPlan = await generateMealPlan(mealPlanData);
-      
-      // Return the generated meal plan
-      return res.json(mealPlan);
+      try {
+        // Generate the meal plan using our algorithm
+        const mealPlan = await generateMealPlan(mealPlanData);
+        console.log('Meal plan generated successfully');
+        
+        // Return the generated meal plan
+        return res.json(mealPlan);
+      } catch (mealPlanError) {
+        console.error('Error in meal plan generation process:', mealPlanError);
+        return res.status(500).json({ 
+          message: "Failed to generate meal plan",
+          error: mealPlanError instanceof Error ? mealPlanError.message : "Unknown error"
+        });
+      }
     } catch (error) {
-      console.error('Error generating meal plan:', error);
+      console.error('Unexpected error in meal plan generation route:', error);
       return res.status(500).json({ 
-        message: "Failed to generate meal plan",
+        message: "Failed to process meal plan request",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
